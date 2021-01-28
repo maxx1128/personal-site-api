@@ -30,7 +30,8 @@ class GetGoodreadsData
     {
       title: get_title_from(row),
       author: get_author_from(row),
-      image_url: get_cover_url_from(page_url)
+      image_url: get_cover_url_from(page_url),
+      link: page_url
     }
   end
 
