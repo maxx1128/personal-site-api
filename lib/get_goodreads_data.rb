@@ -1,54 +1,71 @@
-# frozen_string_literal: true
-
-require "nokogiri"
-require "open-uri"
+require 'net/http'
+require 'json'
+require "base64"
+require 'nokogiri'
 
 class GetGoodreadsData
   GOODREADS_URL = "https://www.goodreads.com"
-  CURRENTLY_READING_URL = "#{GOODREADS_URL}/review/list/25506258-maxwell?order=a&shelf=currently-reading&sort=date_added"
-  FINISHED_READING_URL = "#{GOODREADS_URL}/review/list/25506258-maxwell?shelf=read&sort=date_read"
-  BOOK_ROW_SELECTOR = ".bookalike"
+  CURRENTLY_READING_URL = "#{GOODREADS_URL}/review/list_rss/25506258?key=dXKqua9sPLfNbjVfzsQHPBKJhicdgqAnJuaJ9obujkL4rD1Q&shelf=currently-reading"
+  FINISHED_READING_URL = "#{GOODREADS_URL}/review/list_rss/25506258?key=dXKqua9sPLfNbjVfzsQHPBKJhicdgqAnJuaJ9obujkL4rD1Q&shelf=read&sort=date_read"
+  FUTURE_READING_URL = "#{GOODREADS_URL}/review/list_rss/25506258?key=dXKqua9sPLfNbjVfzsQHPBKJhicdgqAnJuaJ9obujkL4rD1Q&shelf=to-read"
   BOOK_LIMIT = 4
-
-  def initialize
-    @currently_reading_page = get_page(CURRENTLY_READING_URL)
-    @finished_reading_page = get_page(FINISHED_READING_URL)
-  end
 
   def get_data
     {
-      "current": @currently_reading_page.search(BOOK_ROW_SELECTOR).first(BOOK_LIMIT).map { |r| get_row_data(r) },
-      "finished": @finished_reading_page.search(BOOK_ROW_SELECTOR).first(BOOK_LIMIT).map { |r| get_row_data(r) }
+      "current": parse_rss_page(CURRENTLY_READING_URL),
+      "finished": parse_rss_page(FINISHED_READING_URL),
+      "future": parse_rss_page(FUTURE_READING_URL)
     }
   end
 
   private
 
-  def get_row_data(row)
-    page_url = "#{GOODREADS_URL}#{row.at(".title a").attr("href")}"
-
-    {
-      title: get_title_from(row),
-      author: get_author_from(row),
-      image_url: get_cover_url_from(page_url),
-      link: page_url
-    }
+  def parse_rss_page(url)
+    response = api_response(url)
+    parse_xml(response, url)
   end
 
-  def get_title_from(row)
-    row.at(".title a").attr("title")
+  def parse_xml(body, url)
+    xml_doc = Nokogiri::XML.parse(body)
+    all_items = xml_doc.css("item").map do |item|
+
+      description = item.css("description").text
+
+      {
+        title: item.css("title").text,
+        author: pull_author_from_descr(description),
+        image_url: pull_image_from_descr(description),
+        link: pull_link_from_descr(description)
+      }
+    end
+
+    if url.include?("to-read")
+      all_items = all_items.shuffle
+    end
+
+    all_items.first(BOOK_LIMIT)
   end
 
-  def get_author_from(row)
-    row.at(".author a").text.split(", ").reverse.join(" ")
+  def pull_image_from_descr(description)
+    Nokogiri::XML(description)
+      .css('a img')[0]["src"]
+      .sub("SY75", "SY475")
+      .sub("SX50", "SY475")
   end
 
-  def get_cover_url_from(page_url)
-    page = get_page(page_url)
-    page.at("#coverImage").attr("src")
+  def pull_author_from_descr(description)
+    marker_1 = "author: "
+    marker_2 = "<br/>"
+    description[/#{marker_1}(.*?)#{marker_2}/m, 1]
   end
 
-  def get_page(url)
-    Nokogiri::XML(open(url));
+  def pull_link_from_descr(description)
+    Nokogiri::XML(description)
+      .css('a')[0]["href"]
+  end
+
+  def api_response(url)
+    uri = URI(url)
+    Net::HTTP.get(uri)
   end
 end
