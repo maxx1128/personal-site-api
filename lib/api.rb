@@ -12,5 +12,8 @@ get '/books/' do
 end
 
 get '/quote/random/' do
+  headers \
+    'Access-Control-Allow-Origin'   => '*'
+
   redirect GetQuoteImages.new.get_random_image
 end

@@ -17,9 +17,9 @@ class GetQuoteImages
   end
 
   def all_images_paths
-    github_api_data["tree"]
-      .select { |item| item["path"].include?("images/") }
-      .map { |item| item["path"] }
+    github_api_data['tree']
+      .select { |item| item['path'].include?('images/') }
+      .map { |item| item['path'].gsub(' ', '%20') }
   end
 
   def github_api_data
