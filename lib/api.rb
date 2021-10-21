@@ -1,13 +1,19 @@
 require 'sinatra'
-require "sinatra/json"
-require "sinatra/reloader"
-require_relative "./get_goodreads_data.rb"
+require 'sinatra/json'
+require 'sinatra/reloader'
+require_relative './get_goodreads_data'
+require_relative './get_quote_images'
 
 get '/books/' do
   headers \
-    "Access-Control-Allow-Origin"   => "*"
+    'Access-Control-Allow-Origin'   => '*'
 
-  book_data = GetGoodreadsData.new()
+  json GetGoodreadsData.new.get_data
+end
 
-  json book_data.get_data
+get '/quote/random/' do
+  headers \
+    'Access-Control-Allow-Origin'   => '*'
+
+  redirect GetQuoteImages.new.get_random_image
 end
