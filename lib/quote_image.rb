@@ -3,6 +3,8 @@
 require 'fastimage'
 
 class QuoteImage
+  ORIENTATIONS = ['portrait', 'square', 'landscape']
+
   def initialize(base_url)
     @base_url = base_url
   end
@@ -21,12 +23,12 @@ class QuoteImage
 
   def orientation
     case width / height
-    when 1.25...999
-      'horizontal'
-    when 0...0.75
-      'vertical'
+    when 0...0.85
+      ORIENTATIONS[0]
+    when 0.8...1.15
+      ORIENTATIONS[1]
     else
-      'square'
+      ORIENTATIONS[2]
     end
   end
 end

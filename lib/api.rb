@@ -14,6 +14,7 @@ end
 get '/quote/random/' do
   headers \
     'Access-Control-Allow-Origin'   => '*'
+  orientations = params[:orientations]
 
-  redirect GetQuoteImages.new.random
+  redirect GetQuoteImages.new(orientations).random
 end
