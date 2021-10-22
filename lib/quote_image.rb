@@ -14,18 +14,18 @@ class QuoteImage
   end
 
   def width
-    FastImage.size(github_url)[0]
+    FastImage.size(github_url)[0].to_f
   end
 
   def height
-    FastImage.size(github_url)[1]
+    FastImage.size(github_url)[1].to_f
   end
 
   def orientation
     case width / height
     when 0...0.85
       ORIENTATIONS[0]
-    when 0.8...1.15
+    when 0.85...1.15
       ORIENTATIONS[1]
     else
       ORIENTATIONS[2]
