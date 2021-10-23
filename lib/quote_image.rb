@@ -14,11 +14,11 @@ class QuoteImage
   end
 
   def width
-    FastImage.size(github_url)[0].to_f
+    sizes[:width]
   end
 
   def height
-    FastImage.size(github_url)[1].to_f
+    sizes[:height]
   end
 
   def orientation
@@ -30,5 +30,14 @@ class QuoteImage
     else
       ORIENTATIONS[2]
     end
+  end
+
+  def sizes
+    fast_image = FastImage.size(github_url)
+
+    {
+      width: fast_image[0].to_f,
+      height: fast_image[1].to_f
+    }
   end
 end
