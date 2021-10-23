@@ -23,9 +23,9 @@ class QuoteImage
 
   def orientation
     case width / height
-    when 0...0.85
+    when 0...0.8
       ORIENTATIONS[0]
-    when 0.85...1.15
+    when 0.8...1.2
       ORIENTATIONS[1]
     else
       ORIENTATIONS[2]
